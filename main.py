@@ -103,13 +103,13 @@ def _ai_arbitrate(terms_hash: str, evidence_hash: str, description: str) -> dict
     Simulated AI arbitration engine.
     Uses cryptographic hash comparison and keyword analysis to determine outcome.
     """
-    # Compare hashes for similarity score
-    terms_bytes = bytes.fromhex(terms_hash[:64].ljust(64, '0')) if len(terms_hash) >= 8 else b'\x00' * 32
-    evidence_bytes = bytes.fromhex(evidence_hash[:64].ljust(64, '0')) if len(evidence_hash) >= 8 else b'\x00' * 32
-    matching_bits = sum(bin(a ^ b).count('0') - 1 for a, b in zip(terms_bytes[:8], evidence_bytes[:8]))
-    similarity = matching_bits / 64.0
+    # Safe similarity: compare SHA-256 of the provided hashes
+    terms_digest = hashlib.sha256(terms_hash.encode()).digest()
+    evidence_digest = hashlib.sha256(evidence_hash.encode()).digest()
+    matching_bits = sum(bin(a ^ b).count('0') - 1 for a, b in zip(terms_digest[:8], evidence_digest[:8]))
+    similarity = max(0.0, min(1.0, matching_bits / 64.0))
 
-    # Keyword analysis
+    # Keyword analysis on the evidence description
     positive_keywords = ["receipt", "delivered", "confirmed", "completed", "signed", "verified"]
     negative_keywords = ["failed", "missing", "incorrect", "breach", "refused", "fraud"]
 
@@ -121,10 +121,16 @@ def _ai_arbitrate(terms_hash: str, evidence_hash: str, description: str) -> dict
 
     if positive_score > negative_score or similarity > 0.5:
         decision = "SELLER_FAVOR"
-        reasoning = f"Evidence hash demonstrates delivery alignment with terms (similarity={similarity:.2f}). Positive indicators found: {positive_score}."
+        reasoning = (
+            f"Evidence demonstrates delivery alignment with terms (similarity={similarity:.2f}). "
+            f"Positive indicators found: {positive_score}."
+        )
     else:
         decision = "BUYER_FAVOR"
-        reasoning = f"Evidence hash diverges from terms (similarity={similarity:.2f}). Negative indicators: {negative_score}. Terms not sufficiently met."
+        reasoning = (
+            f"Evidence diverges from terms (similarity={similarity:.2f}). "
+            f"Negative indicators: {negative_score}. Terms not sufficiently met."
+        )
 
     return {"decision": decision, "confidence": confidence, "reasoning": reasoning}
 
