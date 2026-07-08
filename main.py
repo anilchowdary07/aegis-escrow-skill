@@ -1,8 +1,7 @@
 import uuid
 import datetime
 import hashlib
-import hmac
-import json
+import os
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import PlainTextResponse
 from pydantic import BaseModel
@@ -69,7 +68,6 @@ arbitration_log: List[dict] = []
 # -----------------
 # HELPERS
 # -----------------
-SKILL_MD_URL = "https://raw.githubusercontent.com/anilchowdary07/aegis-escrow-skill/main/SKILL.md"
 
 def _now() -> str:
     return datetime.datetime.utcnow().isoformat() + "Z"
@@ -148,10 +146,10 @@ def health_check():
 @app.get("/skill.md", response_class=PlainTextResponse)
 def get_skill_md():
     """Return the SKILL.md directly so agents can self-discover."""
-    import urllib.request
+    skill_path = os.path.join(os.path.dirname(__file__), "SKILL.md")
     try:
-        with urllib.request.urlopen(SKILL_MD_URL, timeout=5) as r:
-            return r.read().decode()
+        with open(skill_path) as f:
+            return f.read()
     except Exception:
         return "# Aegis Escrow & AI Arbitration\nSee https://github.com/anilchowdary07/aegis-escrow-skill"
 
