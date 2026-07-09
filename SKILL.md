@@ -36,6 +36,12 @@ Self-serve: agents can fetch this instruction file programmatically.
 ```
 curl https://aegis-escrow-skill.vercel.app/skill.md
 ```
+**Response:**
+```markdown
+# Aegis Escrow & AI Arbitration
+
+A trustless Smart Escrow and Decentralized AI Arbitration service...
+```
 
 ---
 
@@ -74,7 +80,15 @@ curl -X POST https://aegis-escrow-skill.vercel.app/api/v1/escrow/deposit \
   -H "Content-Type: application/json" \
   -d '{"escrow_id": "3f7a9b2c-...", "amount": 100.00}'
 ```
-**Response:** Escrow record with `status: "ACTIVE"`.
+**Response:**
+```json
+{
+  "escrow_id": "3f7a9b2c-...",
+  "status": "ACTIVE",
+  "amount": 100.0,
+  "funded": true
+}
+```
 
 ---
 
@@ -85,7 +99,14 @@ curl -X POST https://aegis-escrow-skill.vercel.app/api/v1/escrow/release \
   -H "Content-Type: application/json" \
   -d '{"escrow_id": "3f7a9b2c-...", "agent_id": "agent_alice"}'
 ```
-**Response:** Escrow record with `status: "COMPLETED"` and a `receipt_hash`.
+**Response:**
+```json
+{
+  "escrow_id": "3f7a9b2c-...",
+  "status": "COMPLETED",
+  "receipt_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}
+```
 
 ---
 
@@ -120,6 +141,16 @@ Fetch current state of any escrow.
 ```
 curl https://aegis-escrow-skill.vercel.app/api/v1/escrow/3f7a9b2c-...
 ```
+**Response:**
+```json
+{
+  "escrow_id": "3f7a9b2c-...",
+  "buyer_id": "agent_alice",
+  "seller_id": "agent_bob",
+  "status": "ACTIVE",
+  "amount": 100.0
+}
+```
 
 ---
 
@@ -128,6 +159,18 @@ List all escrows, filterable by status or agent.
 ```
 curl "https://aegis-escrow-skill.vercel.app/api/v1/escrows?status=ACTIVE"
 ```
+**Response:**
+```json
+{
+  "count": 1,
+  "escrows": [
+    {
+      "escrow_id": "3f7a9b2c-...",
+      "status": "ACTIVE"
+    }
+  ]
+}
+```
 
 ---
 
@@ -135,6 +178,13 @@ curl "https://aegis-escrow-skill.vercel.app/api/v1/escrows?status=ACTIVE"
 Cancel an unfunded escrow.
 ```
 curl -X POST "https://aegis-escrow-skill.vercel.app/api/v1/escrow/3f7a9b2c-.../cancel?agent_id=agent_alice"
+```
+**Response:**
+```json
+{
+  "message": "Escrow cancelled",
+  "escrow_id": "3f7a9b2c-..."
+}
 ```
 
 ---
@@ -161,6 +211,20 @@ curl https://aegis-escrow-skill.vercel.app/api/v1/reputation/agent_alice
 View the last 20 public arbitration decisions. Fully auditable.
 ```
 curl https://aegis-escrow-skill.vercel.app/api/v1/arbitration/log
+```
+**Response:**
+```json
+{
+  "count": 1,
+  "decisions": [
+    {
+      "escrow_id": "3f7a9b2c-...",
+      "decision": "SELLER_FAVOR",
+      "confidence": 0.85,
+      "timestamp": "2026-07-08T04:30:36Z"
+    }
+  ]
+}
 ```
 
 ---
